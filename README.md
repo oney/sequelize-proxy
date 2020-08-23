@@ -18,7 +18,7 @@ type Post {
 }
 
 type Query {
-  posts(limit: Int): [Post]
+  findPosts(limit: Int): [Post]
 }
 ```
 
@@ -42,7 +42,7 @@ export class Post extends Model<Post> {
 
 const resolvers = {
   Query: {
-    posts(_, { limit }, { models }) {
+    findPosts(_, { limit }, { models }) {
       return models.Post.findAll({ limit }};
     },
   },
@@ -68,3 +68,41 @@ const server = new ApolloServer({
 ```
 
 When you use `findByPk_`, `$get_(association)`, it will use the proxy to query to have optimization.
+
+Even you request a query like this
+```graphql
+{
+  findPosts(limit: 10) {
+    title
+    author {
+      username
+      posts(limit: 10) {
+        title
+        author {
+          username
+          posts(limit: 10) {
+            title
+            author {
+              username
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+It only executes 6 SQL queries which is the same as 6 depth of GraphQl query.
+```sql
+Executing (default): SELECT * FROM posts LIMIT 10;
+
+Executing (default): SELECT * FROM posts LEFT OUTER JOIN users ON posts.authorId = users.id WHERE `posts`.`id` IN (37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 56, 57, 58, 59, 60);
+
+Executing (default): SELECT * FROM (SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 1 LIMIT 2) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 2 LIMIT 2) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 3 LIMIT 2) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 4 LIMIT 2) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 19 LIMIT 2) AS sub) AS `posts`;
+
+Executing (default): SELECT * FROM posts LEFT OUTER JOIN users ON posts.authorId = users.id WHERE `posts`.`id` IN (38, 40, 39, 44, 59, 45, 43, 58);
+
+Executing (default): SELECT * FROM (SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 1 LIMIT 2) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 2 LIMIT 2) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 3 LIMIT 2) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 4 LIMIT 2) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 19 LIMIT 2) AS sub) AS `posts`;
+
+Executing (default): SELECT * FROM posts LEFT OUTER JOIN users ON posts.authorId = users.id WHERE `posts`.`id` IN (38, 40, 39, 44, 59, 45, 43, 58);
+```
