@@ -10,21 +10,52 @@ export class Proxy {
 
   private findByPkDataLoader = new DataLoader(
     // @ts-ignore
-    async (keys: { id?: Identifier; options?: Omit<FindOptions, 'where'> }[]): Promise<(Model | undefined)[]> => {
-      const attributes = collectAttributes(keys.map((k) => k.options));
-      const instances = await this.model.findAll({
-        attributes,
-        where: {
-          // @ts-ignore
-          id: Array.from(new Set(keys.map((k) => k.id).filter((i) => !!i))),
-        },
+    async (keys: { id?: Identifier; options?: Omit<FindOptions, 'where'> }[]): Promise<(Model | null)[]> => {
+      const map = new Map<string, Set<Identifier>>();
+      keys.forEach(({ id, options }) => {
+        const opKey = stringify(options);
+        if (!map.has(opKey)) map.set(opKey, new Set<Identifier>());
+        const ids = map.get(opKey)!;
+        if (id) ids.add(id);
       });
-      const map = new Map<number, Model>();
-      instances.forEach((instance) => {
-        // @ts-ignore
-        map.set(instance.id, instance);
+
+      const returnMap = new Map<string, Map<Identifier, Model>>();
+      const promises: Promise<void>[] = [];
+      map.forEach((ids, opKey) => {
+        const options = JSON.parse(opKey);
+        // const attributes = collectAttributes(options);
+        const scope = options.__scope || [];
+        const mdl = scope.reduce((acc: any, cur: any) => {
+          if (cur === '_unscoped_') return acc.unscoped();
+          return acc.scope(cur);
+        }, this.model);
+
+        promises.push(
+          mdl
+            .findAll({
+              ...options,
+              where: {
+                id: Array.from(ids),
+              },
+            })
+            .then((instances: Model<any, any>[]) => {
+              if (!returnMap.has(opKey)) returnMap.set(opKey, new Map<Identifier, Model>());
+              const insMap = returnMap.get(opKey)!;
+              instances.forEach((instance) => {
+                insMap.set(instance.id, instance);
+              });
+            }),
+        );
       });
-      return keys.map((k) => map.get(k.id as number));
+      await Promise.all(promises);
+
+      return keys.map(({ id, options }) => {
+        if (!id) return null;
+        const opKey = stringify(options);
+        const insMap = returnMap.get(opKey);
+        if (!insMap) return null;
+        return insMap.get(id) || null;
+      });
     },
   );
   findByPk<M extends Model>(id?: Identifier, options?: Omit<FindOptions, 'where'>): Promise<M | null> {

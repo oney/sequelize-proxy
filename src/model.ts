@@ -23,7 +23,7 @@ export class Model<T = any, T2 = any> extends OrginalModel<T, T2> {
     identifier?: Identifier,
     options?: Omit<FindOptions, 'where'> | Omit<NonNullFindOptions, 'where'>,
   ): Promise<M | null> {
-    return this.proxy.findByPk(identifier, options);
+    return this.proxy.findByPk(identifier, options || {});
   }
 
   $get_<K extends keyof this>(propertyKey: K, options?: AssociationGetOptions): Promise<$GetType<this[K]>> {
