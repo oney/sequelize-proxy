@@ -4,6 +4,12 @@ This package add a proxy layer on Sequelize to optimize queries by gathering mul
   
 This package can easily and elegantly solve N+1 problem on GraphQL.
 
+## Installation
+```
+npm install sequelize-proxy
+```
+
+## Example
 For example, we have GraphQL definition:
 
 ```graphql
@@ -24,7 +30,7 @@ type Query {
 
 and your reoslvers are
 ```typescript
-import { createModels, Model } from 'src/packages/sequelize-proxy';
+import { createModels, Model } from 'sequelize-proxy';
 import { BelongsTo, HasMany } from 'sequelize-typescript';
 // This package requires you to use sequelize-typescript
 
