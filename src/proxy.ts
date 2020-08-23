@@ -21,6 +21,7 @@ export class Proxy {
       });
       const map = new Map<number, Model>();
       instances.forEach((instance) => {
+        // @ts-ignore
         map.set(instance.id, instance);
       });
       return keys.map((k) => map.get(k.id as number));
@@ -71,6 +72,7 @@ export class Proxy {
                 if (!propMap.has(opKey)) propMap.set(opKey, new Map<Identifier, Model>());
                 const insMap = propMap.get(opKey)!;
                 instances.forEach((instance) => {
+                  // @ts-ignore
                   insMap.set(instance.id, (instance as any)[prop]);
                 });
               }),

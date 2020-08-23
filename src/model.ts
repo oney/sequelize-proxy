@@ -1,6 +1,6 @@
-import { FindOptions, Identifier, NonNullFindOptions, Sequelize } from 'sequelize';
-import { Model as OrginalModel } from 'sequelize-typescript';
+import { FindOptions, Identifier, NonNullFindOptions } from 'sequelize';
 import { AssociationGetOptions } from 'sequelize-typescript/dist/model/model/association/association-get-options';
+import { Model as OrginalModel } from 'sequelize-typescript';
 import { Proxy } from './proxy';
 import { $GetType } from './types';
 
