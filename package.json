@@ -1,6 +1,6 @@
 {
   "name": "sequelize-proxy",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "Sequelize proxy",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -35,8 +35,6 @@
     "typescript": "^4.0.2"
   },
   "dependencies": {
-    "dataloader": "^2.0.0",
-    "sequelize": "^6.3.4",
-    "sequelize-typescript": "^1.1.0"
+    "dataloader": "^2.0.0"
   }
 }
