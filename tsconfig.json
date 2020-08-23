@@ -4,6 +4,7 @@
     "module": "commonjs",
     "declaration": true,
     "outDir": "./lib",
+    "skipLibCheck": true,
     "strict": true
   },
   "include": ["src"],

@@ -1,1 +1,4 @@
-export const Greeter = (name: string) => `Hello ${name}`;
+export * from './model';
+export * from './inject';
+export * from './proxy';
+export * from './types';
