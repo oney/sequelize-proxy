@@ -1,6 +1,6 @@
 # Sequelize proxy
 
-This package add a proxy layer on Sequelize to optimize queries by gather multiple queries such as findByPk and get<Association> and merge them to one single query.
+This package add a proxy layer on Sequelize to optimize queries by gathering multiple queries such as findByPk and get(Association) and merge them to one single query.
   
 This package can easily and elegantly solve N+1 problem on GraphQL.
 
@@ -54,6 +54,8 @@ const resolvers = {
   Post: {
     author(post) {
       return post.$get_('author'};
+      // or
+      // return models.User.findByPk_(post.authorId};
     },
   },
 };
