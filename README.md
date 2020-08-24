@@ -1,6 +1,6 @@
 # Sequelize proxy
 
-This package add a proxy layer on Sequelize to optimize queries by gathering multiple queries such as findByPk and get(Association) and merge them to one single query.
+This package adds a proxy layer on Sequelize to optimize queries by gathering multiple queries such as findByPk and get[Association] (support hasOne, belongsTo, hasMany, belongsToMany) and merging them to one single query.
   
 This package can easily and elegantly solve N+1 problem on GraphQL.
 
@@ -10,7 +10,7 @@ npm install sequelize-proxy
 ```
 
 ## Example
-For example, we have GraphQL definition:
+For example, we have this GraphQL definition:
 
 ```graphql
 type User {
@@ -28,7 +28,7 @@ type Query {
 }
 ```
 
-and your reoslvers are
+and the reoslvers are
 ```typescript
 import { createModels, Model } from 'sequelize-proxy';
 import { BelongsTo, HasMany } from 'sequelize-typescript';
@@ -75,9 +75,9 @@ const server = new ApolloServer({
 }));
 ```
 
-When you use `findByPk_`, `$get_(association)`, it will use the proxy to query to have optimization.
+When you use `findByPk_`, `$get_(association)`, it will use the proxy to query databases to have optimization.
 
-Even you request a query like this
+Even you request a complex query like
 ```graphql
 {
   findPosts(limit: 10) {
@@ -100,17 +100,17 @@ Even you request a query like this
   }
 }
 ```
-It only executes 6 SQL queries which is the same as 6 depth of GraphQl query.
+It only executes 6 SQL queries which are the same as 6 depth of GraphQL query.
 ```sql
 Executing (default): SELECT * FROM posts LIMIT 10;
 
 Executing (default): SELECT * FROM posts LEFT OUTER JOIN users ON posts.authorId = users.id WHERE `posts`.`id` IN (37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 56, 57, 58, 59, 60);
 
-Executing (default): SELECT * FROM (SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 1 LIMIT 2) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 2 LIMIT 2) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 3 LIMIT 2) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 4 LIMIT 2) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 19 LIMIT 2) AS sub) AS `posts`;
+Executing (default): SELECT * FROM (SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 1 LIMIT 10) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 2 LIMIT 10) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 3 LIMIT 10) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 4 LIMIT 10) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 19 LIMIT 10) AS sub) AS `posts`;
 
 Executing (default): SELECT * FROM posts LEFT OUTER JOIN users ON posts.authorId = users.id WHERE `posts`.`id` IN (38, 40, 39, 44, 59, 45, 43, 58);
 
-Executing (default): SELECT * FROM (SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 1 LIMIT 2) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 2 LIMIT 2) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 3 LIMIT 2) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 4 LIMIT 2) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 19 LIMIT 2) AS sub) AS `posts`;
+Executing (default): SELECT * FROM (SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 1 LIMIT 10) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 2 LIMIT 10) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 3 LIMIT 10) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 4 LIMIT 10) AS sub UNION ALL SELECT * FROM (SELECT * FROM posts WHERE posts.authorId = 19 LIMIT 10) AS sub) AS `posts`;
 
 Executing (default): SELECT * FROM posts LEFT OUTER JOIN users ON posts.authorId = users.id WHERE `posts`.`id` IN (38, 40, 39, 44, 59, 45, 43, 58);
 ```
