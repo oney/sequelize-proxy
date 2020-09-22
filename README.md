@@ -28,7 +28,7 @@ type Query {
 }
 ```
 
-and the reoslvers are
+and the resolvers are
 ```typescript
 import { createModels, Model } from 'sequelize-proxy';
 import { BelongsTo, HasMany } from 'sequelize-typescript';
