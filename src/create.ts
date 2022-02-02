@@ -1,7 +1,7 @@
-import { Sequelize, ModelType, ModelCtor, Model } from 'sequelize';
+import { Sequelize, ModelStatic, Model } from 'sequelize';
 import { Proxy } from './proxy';
 
-function proxyModel(model: ModelType) {
+function proxyModel(model: ModelStatic<Model>) {
   class ProxyModel extends model {}
   Object.defineProperty(ProxyModel, 'name', { value: model.name });
   // @ts-ignore
@@ -12,10 +12,10 @@ function proxyModel(model: ModelType) {
 export function createModels(
   sequelize: Sequelize,
 ): {
-  [key: string]: ModelCtor<Model>;
+  [key: string]: ModelStatic<Model>;
 } {
   const models: {
-    [key: string]: ModelCtor<Model>;
+    [key: string]: ModelStatic<Model>;
   } = {};
   for (const [name, model] of Object.entries(sequelize.models)) {
     models[name] = proxyModel(model);

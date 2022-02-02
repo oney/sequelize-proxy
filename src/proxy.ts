@@ -29,7 +29,7 @@ export class Proxy {
       const returnMap = new Map<string, Map<Identifier, Model>>();
       const promises: Promise<void>[] = [];
       map.forEach((ids, opKey) => {
-        const options = optionMap.get(opKey);
+        const options: any = optionMap.get(opKey);
         // const attributes = collectAttributes(options);
         const scope = options ? (options.__scope || []) : [];
         const mdl = scope.reduce((acc: any, cur: any) => {
