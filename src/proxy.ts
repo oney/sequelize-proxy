@@ -11,10 +11,17 @@ export class Proxy {
   private findByPkDataLoader = new DataLoader(
     // @ts-ignore
     async (keys: { id?: Identifier; options?: Omit<FindOptions, 'where'> }[]): Promise<(Model | null)[]> => {
+      const optionMap = new Map<string, Omit<FindOptions, 'where'>>();
       const map = new Map<string, Set<Identifier>>();
       keys.forEach(({ id, options }) => {
         const opKey = stringify(options);
-        if (!map.has(opKey)) map.set(opKey, new Set<Identifier>());
+        if (!map.has(opKey)) {
+          map.set(opKey, new Set<Identifier>());
+          if (options) {
+            // weird to have this `if`, but TS cries if we don't
+            optionMap.set(opKey, options);
+          }
+        }
         const ids = map.get(opKey)!;
         if (id) ids.add(id);
       });
@@ -22,9 +29,9 @@ export class Proxy {
       const returnMap = new Map<string, Map<Identifier, Model>>();
       const promises: Promise<void>[] = [];
       map.forEach((ids, opKey) => {
-        const options = JSON.parse(opKey);
+        const options = optionMap.get(opKey);
         // const attributes = collectAttributes(options);
-        const scope = options.__scope || [];
+        const scope = options ? (options.__scope || []) : [];
         const mdl = scope.reduce((acc: any, cur: any) => {
           if (cur === '_unscoped_') return acc.unscoped();
           return acc.scope(cur);
